@@ -1,5 +1,7 @@
 // 🔐 Carregar variáveis de ambiente (.env local)
-//require('dotenv').config();
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 const express = require('express');
 const cors = require('cors');
@@ -26,11 +28,20 @@ pool.query('SELECT 1')
   .catch(err => console.error('❌ Erro ao conectar no banco:', err));
 
 // =======================
-// ROTA DE TESTE
+// ROTA RAIZ (CORREÇÃO DO Cannot GET /)
+// =======================
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Integração funcionando 🎉'
+  });
+});
+
+// =======================
+// ROTA DE TESTE COM BANCO
 // =======================
 app.get('/test', async (req, res) => {
   try {
-    // Criar tabela se não existir
     await pool.query(`
       CREATE TABLE IF NOT EXISTS test_logs (
         id SERIAL PRIMARY KEY,
@@ -38,7 +49,6 @@ app.get('/test', async (req, res) => {
       )
     `);
 
-    // Inserir registro
     await pool.query('INSERT INTO test_logs DEFAULT VALUES');
 
     res.json({
@@ -47,7 +57,6 @@ app.get('/test', async (req, res) => {
     });
 
   } catch (err) {
-    // 🔥 MOSTRAR ERRO REAL
     console.error('❌ ERRO NA ROTA /test:', err);
 
     res.status(500).json({
@@ -61,6 +70,6 @@ app.get('/test', async (req, res) => {
 // =======================
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 API rodando na porta ${PORT}`);
 });
